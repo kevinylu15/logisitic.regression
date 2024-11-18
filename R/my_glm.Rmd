@@ -1,4 +1,40 @@
 ```{r}
 library(roxygen2)
+library(bench)
+```
+
+
+Original GLM R Function
+```{r}
+og_glm_fit = glm(y ~ x, data=data, family = binomial)
+my_glm_fit = my_glm(y~ x, data=data)
+```
+
+Example data
+```{r}
+set.seed(1)
+n = 1000
+x = rnorm(n)
+y = rbinom(n,1,plogis(x))
+data= data.frame(y,x)
+```
+
+
+
+Comparing Original GLM and my_glm Function
+```{r}
+all.equal(coef(og_glm_fit, coef(my_glm_fit)))
+```
+
+Benchmarking Efficiency
+```{r}
+bench::mark(glm = glm(y~x, data=data, family = binomial), my_glm = my_glm(y~x, data=data), check=FALSE)
+```
+
+Unit Tests
+```{r}
+usethis::use_testthat()
+test_that("results", {expect_equal(ceof(og_glm_fit), coef(my_glm_fit))})
+devtools::test()
 ```
 
