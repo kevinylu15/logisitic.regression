@@ -45,6 +45,8 @@ max_iter: Maximum number of iterations allowed. Default is 100
 
 ## **Function Details**
 
+
+
 ## **Example**
 
 ## **Algorithm Explanation
