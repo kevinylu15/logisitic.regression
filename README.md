@@ -1,30 +1,57 @@
-## **Project Title**
+## **Logistic Regression Model Function**
 
-Project Title is a description of the project and its purpose.
+An alternate implementation of logistic regression in R using the Iteratively Reweighted Least Squares (IRLS) algorithm, serving as a replacement for the built-in glm() function with binary predictor variable(s).
+
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Function Details](#function-details)
+- [Example](#example)
+- [Algorithm Explanation](#algorithm-explanation)
+- [Comparison with `glm()`](#comparison-with-glm)
+- [Limitations](#limitations)
+- [Contributing](#contributing)
+- [License](#license)
+
 
 ## **Introduction**
 
-Project Title is a project that does something useful. It was created to solve a particular problem, and it provides a solution that is better than the alternatives.
+The my_logregr function is a custom R function that fits a logistic regression model without directly using R's built-in glm() function. It uses the Iteratively Reweighted Least Squares (IRLS) algorithm to estimate the model coefficients and manually calculates fitted values, linear predictors, the design matrix, and checks for convergence.
+
+
+## **Features**
+
+Fits a binary logistic regression model.
+Can handle single or multiple predictors, including interactions.
+Returns coefficients, fitted values, linear predictors, iteration count, and convergence status.
+Allows manual input of convergence tolerance and maximum iterations.
+
 
 ## **Installation**
 
-To install Project Title, follow these steps:
-
-1. Clone the repository: **`git clone https://github.com/username/project-title.git`**
-2. Navigate to the project directory: **`cd project-title`**
-3. Install dependencies: **`npm install`**
-4. Build the project: **`npm run build`**
-5. Start the project: **`npm start`**
+To install the my_logregr function, you can source/download the function into your R environment or directly copy&paste the function into your R script.
 
 ## **Usage**
 
-To use Project Title, follow these steps:
+my_logistic_regression(formula, data, tol = 1e-6, max_iter = 100)
 
-1. Open the project in your favorite code editor.
-2. Modify the source code to fit your needs.
-3. Build the project: **`npm run build`**
-4. Start the project: **`npm start`**
-5. Use the project as desired.
+formula: An object of class "formula" (or one that can be coerced to that class): a symbolic description of the model to be fitted.
+data: A data frame containing the variables in the model.
+tol: Convergence tolerance. The algorithm stops when the change in coefficients is less than this value. Default is 1e-6.
+max_iter: Maximum number of iterations allowed. Default is 100
+
+## **Function Details**
+
+## **Example**
+
+## **Algorithm Explanation
+
+## **Comparison with glm()**
+
+## **Limitations**
 
 ## **Contributing**
 
