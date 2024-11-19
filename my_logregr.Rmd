@@ -1,0 +1,132 @@
+```{r}
+library(roxygen2)
+library(bench)
+```
+
+
+my_logreg Function
+```{r}
+my_logreg <- function(formula, data, tol = 1e-6, max_iter = 100) {
+  # Process the formula and data to get the model frame
+  mf <- model.frame(formula, data)
+  
+  # Extract the response variable (y) and the design matrix (X)
+  y <- model.response(mf)
+  X <- model.matrix(attr(mf, "terms"), data = mf)
+  
+  # Initialize coefficients (beta) to zeros
+  beta <- rep(0, ncol(X))
+  
+  # Iteratively update beta using the IRLS algorithm
+  for (iter in 1:max_iter) {
+    # Linear predictor
+    eta <- X %*% beta
+    
+    # Predicted probabilities using the logistic function
+    p <- 1 / (1 + exp(-eta))
+    
+    # Diagonal weight matrix W (as a vector)
+    W <- as.vector(p * (1 - p))
+    
+    # Check for zero weights to avoid division by zero
+    if (any(W == 0)) {
+      W[W == 0] <- 1e-6
+    }
+    
+    # Compute the gradient (first derivative of the log-likelihood)
+    gradient <- t(X) %*% (y - p)
+    
+    # Multiply each column of X by the corresponding weight
+    WX <- X * W
+
+    # Compute the Hessian
+    Hessian <- t(X) %*% WX
+    
+    # Update the coefficients
+    delta <- solve(Hessian, gradient)
+    beta_new <- beta + delta
+    
+    # Check for convergence
+    if (sum(abs(beta_new - beta)) < tol) {
+      beta <- beta_new
+      break
+    }
+    
+    # Update beta for the next iteration
+    beta <- beta_new
+  }
+  
+  # Compute final fitted values
+  eta <- X %*% beta
+  fitted_values <- 1 / (1 + exp(-eta))
+  
+  # Return the results as a list
+  return(list(
+    coefficients = beta,
+    fitted.values = fitted_values,
+    linear.predictors = eta,
+    iterations = iter,
+    converged = iter < max_iter
+  ))
+}
+```
+
+
+Example data
+```{r}
+# Set seed for reproducibility
+set.seed(123)
+
+# Generate predictor variables
+n <- 100  # Sample size
+x1 <- rnorm(n)
+x2 <- runif(n)
+
+# Define true coefficients
+beta_true <- c(Intercept = -0.5, x1 = 1.2, x2 = -0.8)
+
+# Generate linear predictor
+eta <- beta_true["Intercept"] + beta_true["x1"] * x1 + beta_true["x2"] * x2
+
+# Generate probabilities using the logistic function
+p <- 1 / (1 + exp(-eta))
+
+# Generate binary response variable
+y <- rbinom(n, size = 1, prob = p)
+
+# Create data frame
+data <- data.frame(y = y, x1 = x1, x2 = x2)
+
+```
+
+
+
+Comparing Original GLM and my_glm Function
+```{r}
+my_logreg_fit = my_logreg(y ~ x1+x2, data)
+og_glm_fit = glm(y ~ x1+x2, data, family = binomial)
+# Convert my_coefficients to numeric vector and set names
+my_coefficients <- as.numeric(my_logreg_fit$coefficients)
+
+# Convert glm_coefficients to numeric vector and set names
+glm_coefficients <- as.numeric(coef(og_glm_fit))
+
+coef_comparison <- all.equal(my_coefficients, glm_coefficients, tolerance = 1e-6)
+print("Coefficient Comparison:")
+print(coef_comparison)
+
+#all.equal(coef(og_glm_fit, my_glm_fit$coefficients))
+```
+
+Benchmarking Efficiency
+```{r}
+bench::mark(glm = glm(y~x, data=data, family = binomial), my_glm_fit, check=FALSE)
+```
+
+Unit Tests
+```{r}
+usethis::use_testthat()
+test_that("results", {expect_equal(ceof(og_glm_fit), coef(my_glm_fit))})
+devtools::test()
+```
+
