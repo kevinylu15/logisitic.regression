@@ -7,61 +7,34 @@ library(bench)
 my_logreg Function
 ```{r}
 my_logreg <- function(formula, data, tol = 1e-6, max_iter = 100) {
-  # Process the formula and data to get the model frame
-  mf <- model.frame(formula, data)
-  
-  # Extract the response variable (y) and the design matrix (X)
-  y <- model.response(mf)
-  X <- model.matrix(attr(mf, "terms"), data = mf)
-  
-  # Initialize coefficients (beta) to zeros
-  beta <- rep(0, ncol(X))
-  
-  # Iteratively update beta using the IRLS algorithm
+  mf <- model.frame(formula, data) #return a dataframe
+  y <- model.response(mf) #response variable y
+  X <- model.matrix(attr(mf, "terms"), data = mf) #design matrix
+  beta <- rep(0, ncol(X)) #pre allocate beta coefficients vector
+  #Update IRLS algorithm
   for (iter in 1:max_iter) {
-    # Linear predictor
-    eta <- X %*% beta
-    
-    # Predicted probabilities using the logistic function
-    p <- 1 / (1 + exp(-eta))
-    
-    # Diagonal weight matrix W (as a vector)
-    W <- as.vector(p * (1 - p))
-    
-    # Check for zero weights to avoid division by zero
-    if (any(W == 0)) {
+    eta <- X %*% beta #linear predictor
+    p <- 1 / (1 + exp(-eta)) #logistic function
+    W <- as.vector(p * (1 - p)) #weight matrix converted to vector
+    if (any(W == 0)) { #cannot have 0 weights (division error)
       W[W == 0] <- 1e-6
     }
-    
-    # Compute the gradient (first derivative of the log-likelihood)
+    #Log-likelihood
     gradient <- t(X) %*% (y - p)
-    
-    # Multiply each column of X by the corresponding weight
-    WX <- X * W
-
-    # Compute the Hessian
+    WX <- X * W #column of X * weights
     Hessian <- t(X) %*% WX
-    
-    # Update the coefficients
-    delta <- solve(Hessian, gradient)
+    delta <- solve(Hessian, gradient) #updating coefficients
     beta_new <- beta + delta
-    
     # Check for convergence
     if (sum(abs(beta_new - beta)) < tol) {
       beta <- beta_new
       break
     }
-    
-    # Update beta for the next iteration
-    beta <- beta_new
+    beta <- beta_new #update current beta
   }
-  
-  # Compute final fitted values
   eta <- X %*% beta
-  fitted_values <- 1 / (1 + exp(-eta))
-  
-  # Return the results as a list
-  return(list(
+  fitted_values <- 1 / (1 + exp(-eta)) #final fitted values
+  return(list( #return values in list format
     coefficients = beta,
     fitted.values = fitted_values,
     linear.predictors = eta,
@@ -69,34 +42,6 @@ my_logreg <- function(formula, data, tol = 1e-6, max_iter = 100) {
     converged = iter < max_iter
   ))
 }
-```
-
-
-Example data
-```{r}
-# Set seed for reproducibility
-set.seed(123)
-
-# Generate predictor variables
-n <- 100  # Sample size
-x1 <- rnorm(n)
-x2 <- runif(n)
-
-# Define true coefficients
-beta_true <- c(Intercept = -0.5, x1 = 1.2, x2 = -0.8)
-
-# Generate linear predictor
-eta <- beta_true["Intercept"] + beta_true["x1"] * x1 + beta_true["x2"] * x2
-
-# Generate probabilities using the logistic function
-p <- 1 / (1 + exp(-eta))
-
-# Generate binary response variable
-y <- rbinom(n, size = 1, prob = p)
-
-# Create data frame
-data <- data.frame(y = y, x1 = x1, x2 = x2)
-
 ```
 
 
