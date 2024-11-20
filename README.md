@@ -2,6 +2,11 @@
 
 An alternate implementation of logistic regression in R using the Iteratively Reweighted Least Squares (IRLS) algorithm, serving as a replacement for the built-in glm() function with binary predictor variable(s).
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/kevinylu15/logistic.regression/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/kevinylu15/logistic.regression/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/kevinylu15/logistic.regression/graph/badge.svg)](https://app.codecov.io/gh/kevinylu15/logistic.regression)
+<!-- badges: end -->
+
 ## Table of Contents
 
 - [Introduction](#introduction)
