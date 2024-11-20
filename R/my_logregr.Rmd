@@ -4,9 +4,9 @@ library(bench)
 ```
 
 
-my_logreg Function
+my_logregr Function
 ```{r}
-my_logreg <- function(formula, data, tol = 1e-6, max_iter = 100) {
+my_logregr <- function(formula, data, tol = 1e-6, max_iter = 100) {
   mf <- model.frame(formula, data) #return a dataframe
   y <- model.response(mf) #response variable y
   X <- model.matrix(attr(mf, "terms"), data = mf) #design matrix
@@ -27,7 +27,7 @@ my_logreg <- function(formula, data, tol = 1e-6, max_iter = 100) {
     beta_new <- beta + delta
     # Check for convergence
     if (sum(abs(beta_new - beta)) < tol) {
-      beta <- beta_new
+      beta <- beta_new 
       break
     }
     beta <- beta_new #update current beta
@@ -43,6 +43,5 @@ my_logreg <- function(formula, data, tol = 1e-6, max_iter = 100) {
   ))
 }
 ```
-
 
 

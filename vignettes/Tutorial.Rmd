@@ -18,68 +18,54 @@ knitr::opts_chunk$set(
 library(logistic.regression)
 ```
 
+Simple Logistic Regression (2 Predictors, no interaction)
 ```{r}
-set.seed(100)
-
-#Create predictor x variables
+set.seed(100) #keep track of specific sample
 n <- 200
 x1 <- rnorm(n)
 x2 <- rbinom(n, size=1, prob=0.5)
-
-# Define true coefficients
-beta_true <- c(Intercept = 0.5, x1 = -1.5, x2 = 0.8)
-
-# Calculate linear predictor
+beta_true <- c(Intercept = 0.5, x1 = -1.5, x2 = 0.8) #true coefficients
 eta <- beta_true["Intercept"] + beta_true["x1"] * x1 + beta_true["x2"] * x2
-
-# Calculate probabilities
-p <- 1 / (1 + exp(-eta))
-
-# Generate binary response variable
-y <- rbinom(n, size = 1, prob = p)
-
-# Create a data frame
-data <- data.frame(y = y, x1 = x1, x2 = factor(x2))
-
+p <- 1 / (1 + exp(-eta)) #probabilities
+y <- rbinom(n, size = 1, prob = p) #binary y response variable
+data <- data.frame(y = y, x1 = x1, x2 = factor(x2)) #format into data frame 
 ```
 
 ```{r}
-# Fit the model using my_logistic_regression
-model <- my_logregr(y ~ x1 + x2, data)
+#my_logregr function fit
+my_logreg_fit <- my_logregr(y ~ x1 + x2, data)
+#glm built-in function fit
+og_glm_fit <- glm(y ~ x1+x2, data, family = binomial)
 
-# View the estimated coefficients
-print("Estimated Coefficients:")
-print(model$coefficients)
-
-```
-
-
-Comparing Original GLM and my_glm Function
-```{r}
-my_logreg_fit = my_logreg(y ~ x1+x2, data)
-og_glm_fit = glm(y ~ x1+x2, data, family = binomial)
-# Convert my_coefficients to numeric vector and set names
+# Convert coefficients to numeric vector and set names
 my_coefficients <- as.numeric(my_logreg_fit$coefficients)
-
-# Convert glm_coefficients to numeric vector and set names
 glm_coefficients <- as.numeric(coef(og_glm_fit))
 
-coef_comparison <- all.equal(my_coefficients, glm_coefficients, tolerance = 1e-6)
-print("Coefficient Comparison:")
-print(coef_comparison)
-
-#all.equal(coef(og_glm_fit, my_glm_fit$coefficients))
+# Coefficient comparison
+all.equal(my_coefficients, glm_coefficients, tolerance = 1e-6)
 ```
+Interaction Logistic Regression (2 predictors, 1 interaction)
+```{r}
+#Utilizing same data as previous example, adding an interaction covariate
+data$x1_x2 <- data$x1 * as.numeric(as.character(data$x2))
+# Fit the model with interaction using my_logistic_regression
+inter_my_fit <- my_logregr(y ~ x1 + x2 + x1:x2, data)
+inter_glm_fit <- glm(y ~ x1+x2 + x1:x2, data, family = binomial)
+
+# Convert coefficients to numeric vector and set names
+inter_my_coefficients <- as.numeric(inter_my_fit$coefficients)
+inter_glm_coefficients <- as.numeric(coef(inter_glm_fit))
+
+# Coefficient comparison
+all.equal(inter_my_coefficients, inter_glm_coefficients, tolerance = 1e-6)
+```
+
+
 
 Benchmarking Efficiency
 ```{r}
-bench::mark(glm = glm(y~x, data=data, family = binomial), my_glm_fit, check=FALSE)
+bench::mark(og_glm_fit, my_logreg_fit, check=FALSE)
 ```
 
-Unit Tests
-```{r}
-usethis::use_testthat()
-test_that("results", {expect_equal(ceof(og_glm_fit), coef(my_glm_fit))})
-devtools::test()
-```
+
 
