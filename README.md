@@ -14,7 +14,6 @@ An alternate implementation of logistic regression in R using the Iteratively Re
 - [Installation](#installation)
 - [Usage](#usage)
 - [Function Details](#function-details)
-- [Example](#example)
 - [Algorithm Explanation](#algorithm-explanation)
 - [Comparison with `glm()`](#comparison-with-glm)
 - [Limitations](#limitations)
@@ -50,29 +49,79 @@ max_iter: Maximum number of iterations allowed. Default is 100
 
 ## **Function Details**
 
+my_logregr <- function(formula, data, tol = 1e-6, max_iter = 100) {
+  mf <- model.frame(formula, data) #return a dataframe
+  y <- model.response(mf) #response variable y
+  X <- model.matrix(attr(mf, "terms"), data = mf) #design matrix
+  beta <- rep(0, ncol(X)) #pre allocate beta coefficients vector
+  #Update IRLS algorithm
+  for (iter in 1:max_iter) {
+    eta <- X %*% beta #linear predictor
+    p <- 1 / (1 + exp(-eta)) #logistic function
+    W <- as.vector(p * (1 - p)) #weight matrix converted to vector
+    if (any(W == 0)) { #cannot have 0 weights (division error)
+      W[W == 0] <- 1e-6
+    }
+    #Log-likelihood
+    gradient <- t(X) %*% (y - p)
+    WX <- X * W #column of X * weights
+    Hessian <- t(X) %*% WX
+    delta <- solve(Hessian, gradient) #updating coefficients
+    beta_new <- beta + delta
+    # Check for convergence
+    if (sum(abs(beta_new - beta)) < tol) {
+      beta <- beta_new 
+      break
+    }
+    beta <- beta_new #update current beta
+  }
+  eta <- X %*% beta
+  fitted_values <- 1 / (1 + exp(-eta)) #final fitted values
+  return(list( #return values in list format
+    coefficients = beta,
+    fitted.values = fitted_values,
+    linear.predictors = eta,
+    iterations = iter,
+    converged = iter < max_iter
+  ))
+}
 
 
-## **Example**
 
 ## **Algorithm Explanation
 
+Data Parsing: The function starts by parsing the input formula and data to extract the response variable y and the design matrix X.
+Pre-Allocation: Pre-allocating a zero vector for large datasets.
+Iteration: For each iteration until convergence or reaching the maximum number of iterations.
+Linear Predictor (eta): Compute the linear combination of predictors and current coefficients.
+Predicted Probabilities (p): Apply the logistic function to eta to get probabilities.
+Weights (W): Compute weights of the least squares.
+Gradient: Calculate the gradient of the log-likelihood.
+Hessian: Compute the Hessian matrix (second order derivatives for optimization)
+Update Coefficients: Solve the linear system to find the coefficient updates.
+Convergence Check: If the change in coefficients is less than the tolerance, stop iterating.
+Results: After convergence, the function returns the estimated coefficients, fitted values, linear predictors, iteration count, and convergence status.
+
 ## **Comparison with glm()**
+
+The my_logistic_regression function implements similarly to the glm() function with family = binomial(link = "logit")
+
+Algorithm: Both use the IRLS algorithm for estimation.
+Function: glm() handles weights, offsets, complicated formulas and large datasets more efficiently.
+Performance: glm() is optimized and may be faster for large or complex datasets
+Usage: glm() is part of the base R stats package and can be used for other general statistical modeling
 
 ## **Limitations**
 
+Error Handling: The function has basic error checking for formulas and mathematical operations but may not handle all edge cases.
+Extensions: Only supports binary response variables.
+Performance: Potentially slow for large, complex datasets.
+Testing: Does not display significance test results or standard errors.
+
 ## **Contributing**
 
-If you'd like to contribute to Project Title, here are some guidelines:
-
-1. Fork the repository.
-2. Create a new branch for your changes.
-3. Make your changes.
-4. Write tests to cover your changes.
-5. Run the tests to ensure they pass.
-6. Commit your changes.
-7. Push your changes to your forked repository.
-8. Submit a pull request.
+If you'd like to improve the function or add features, please submit a pull request or send me an email.
 
 ## **License**
 
-Project Title is released under the MIT License. See the **[LICENSE](https://www.blackbox.ai/share/LICENSE)** file for details.
+The Logistic Regression Model Funciton is released under the MIT License. See the **[LICENSE](https://www.blackbox.ai/share/LICENSE)** file for details.
