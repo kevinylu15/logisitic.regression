@@ -13,7 +13,6 @@ An alternate implementation of logistic regression in R using the Iteratively Re
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Function Details](#function-details)
 - [Algorithm Explanation](#algorithm-explanation)
 - [Comparison with `glm()`](#comparison-with-glm)
 - [Limitations](#limitations)
@@ -33,7 +32,6 @@ Can handle single or multiple predictors, including interactions.
 Returns coefficients, fitted values, linear predictors, iteration count, and convergence status.
 Allows manual input of convergence tolerance and maximum iterations.
 
-
 ## **Installation**
 
 To install the my_logregr function, you can source/download the function into your R environment or directly copy&paste the function into your R script.
@@ -47,48 +45,7 @@ data: A data frame containing the variables in the model.
 tol: Convergence tolerance. The algorithm stops when the change in coefficients is less than this value. Default is 1e-6.
 max_iter: Maximum number of iterations allowed. Default is 100
 
-## **Function Details**
-
-my_logregr <- function(formula, data, tol = 1e-6, max_iter = 100) {
-  mf <- model.frame(formula, data) #return a dataframe
-  y <- model.response(mf) #response variable y
-  X <- model.matrix(attr(mf, "terms"), data = mf) #design matrix
-  beta <- rep(0, ncol(X)) #pre allocate beta coefficients vector
-  #Update IRLS algorithm
-  for (iter in 1:max_iter) {
-    eta <- X %*% beta #linear predictor
-    p <- 1 / (1 + exp(-eta)) #logistic function
-    W <- as.vector(p * (1 - p)) #weight matrix converted to vector
-    if (any(W == 0)) { #cannot have 0 weights (division error)
-      W[W == 0] <- 1e-6
-    }
-    #Log-likelihood
-    gradient <- t(X) %*% (y - p)
-    WX <- X * W #column of X * weights
-    Hessian <- t(X) %*% WX
-    delta <- solve(Hessian, gradient) #updating coefficients
-    beta_new <- beta + delta
-    # Check for convergence
-    if (sum(abs(beta_new - beta)) < tol) {
-      beta <- beta_new 
-      break
-    }
-    beta <- beta_new #update current beta
-  }
-  eta <- X %*% beta
-  fitted_values <- 1 / (1 + exp(-eta)) #final fitted values
-  return(list( #return values in list format
-    coefficients = beta,
-    fitted.values = fitted_values,
-    linear.predictors = eta,
-    iterations = iter,
-    converged = iter < max_iter
-  ))
-}
-
-
-
-## **Algorithm Explanation
+## **Algorithm Explanation**
 
 Data Parsing: The function starts by parsing the input formula and data to extract the response variable y and the design matrix X.
 Pre-Allocation: Pre-allocating a zero vector for large datasets.
